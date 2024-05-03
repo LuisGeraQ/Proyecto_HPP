@@ -26,51 +26,90 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<List<dynamic>> _data = [];
+  List<List<dynamic>> _data1 = [];
+  List<List<dynamic>> _data2 = [];
+  List<List<dynamic>> _data3 = [];
 
-  void _loadCSV() async {
-    final rawData = await rootBundle.loadString("assets/data/heart_rate.csv");
+  @override
+  void initState() {
+    super.initState();
+    _loadCSV("assets/data/heart_rate.csv", 1);
+    _loadCSV("assets/data/calorias.csv", 2);
+    _loadCSV("assets/data/estres.csv", 3);
+  }
+
+  void _loadCSV(String path, int dataSet) async {
+    final rawData = await rootBundle.loadString(path);
     List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
     setState(() {
-      _data = listData;
+      if (dataSet == 1) {
+        _data1 = listData;
+      } else if (dataSet == 2) {
+        _data2 = listData;
+      } else if (dataSet == 3) {
+        _data3 = listData;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const Text("Health Performance Pro"),
-            const SizedBox(width: 85), // Espacio entre el texto y la imagen
-            Image.asset(
-              "assets/images/hpp.jpg", // Ruta de tu imagen
-              width: 64, // Ajusta el ancho de la imagen según sea necesario
-              height: 64, // Ajusta la altura de la imagen según sea necesario
+    return DefaultTabController(
+      length: 3, // Número total de pestañas
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              const Text("Health Performance Pro"),
+              const SizedBox(width: 45), // Espacio entre el texto y la imagen
+              Image.asset(
+                "assets/images/hpp.jpg", // Ruta de tu imagen
+                width: 64, // Ajusta el ancho de la imagen según sea necesario
+                height: 64, // Ajusta la altura de la imagen según sea necesario
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                // Aquí puedes agregar la lógica para la acción del botón
+              },
             ),
+          ],
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Heart Rate'),
+              Tab(text: 'Calorías'),
+              Tab(text: 'Estrés'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildDataTable(_data1),
+            _buildDataTable(_data2),
+            _buildDataTable(_data3),
           ],
         ),
       ),
-      body: ListView.builder(
-        itemCount: _data.length,
-        itemBuilder: (_, int index) {
-          return Card(
-            margin: const EdgeInsets.all(3),
-            color: index == 0 ? Colors.amber : Colors.white,
-            child: ListTile(
-              leading: Text((_data[index][0].toString())),
-              title: Text(_data[index][1].toString()),
-              trailing: Text(_data[index][2].toString()),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _loadCSV,
-        child: const Icon(Icons.add),
-      ),
-      // Display the contents from the CSV file
+    );
+  }
+
+  Widget _buildDataTable(List<List<dynamic>> data) {
+    return ListView.builder(
+      itemCount: data.length,
+      itemBuilder: (_, int index) {
+        return Card(
+          margin: const EdgeInsets.all(3),
+          color: index == 0 ? Colors.amber : Colors.white,
+          child: ListTile(
+            leading: Text((data[index][0].toString())),
+            title: Text(data[index][1].toString()),
+            trailing: Text(data[index][2].toString()),
+          ),
+        );
+      },
     );
   }
 }
