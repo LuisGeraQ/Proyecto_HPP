@@ -11,9 +11,56 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: const WelcomePage(),
+    );
+  }
+}
+
+class WelcomePage extends StatelessWidget {
+  const WelcomePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor:
+          Colors.blue, // Color de fondo de la pantalla de bienvenida
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              children: [
+                Image.asset(
+                  'assets/images/hpp.jpg', // Ruta de tu imagen
+                  width:
+                      200, // Ajusta el ancho de la imagen según sea necesario
+                  height:
+                      200, // Ajusta la altura de la imagen según sea necesario
+                ),
+                const Text(
+                  'Bienvenido',
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
+              },
+              child: const Text('Empezar'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -61,22 +108,22 @@ class _HomePageState extends State<HomePage> {
           title: Row(
             children: [
               const Text("Health Performance Pro"),
-              const SizedBox(width: 40), // Espacio entre el texto y la imagen
+              const SizedBox(width: 20), // Espacio entre el texto y la imagen
               Image.asset(
                 "assets/images/hpp.jpg", // Ruta de tu imagen
-                width: 64, // Ajusta el ancho de la imagen según sea necesario
-                height: 64, // Ajusta la altura de la imagen según sea necesario
+                width: 60, // Ajusta el ancho de la imagen según sea necesario
+                height: 60, // Ajusta la altura de la imagen según sea necesario
               ),
             ],
           ),
-          actions: [
+          /*  /*  actions: [
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () {
                 // Aquí puedes agregar la lógica para la acción del botón
               },
-            ),
-          ],
+            ), */
+          ], */
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Heart Rate'),
@@ -118,8 +165,8 @@ class _HomePageState extends State<HomePage> {
         return Card(
           margin: const EdgeInsets.all(3),
           color: index == 0
-              ? Color.fromARGB(255, 236, 33, 81)
-              : Color.fromARGB(255, 189, 208, 223),
+              ? const Color.fromARGB(255, 236, 33, 81)
+              : const Color.fromARGB(255, 189, 208, 223),
           child: ListTile(
             leading: Text((data[index][0].toString())),
             title: Text(data[index][1].toString()),
