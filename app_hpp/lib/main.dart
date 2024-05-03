@@ -39,13 +39,6 @@ class WelcomePage extends StatelessWidget {
                   height:
                       200, // Ajusta la altura de la imagen según sea necesario
                 ),
-                const Text(
-                  'Bienvenido',
-                  style: TextStyle(
-                    fontSize: 30,
-                    color: Colors.white,
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 20),
