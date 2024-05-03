@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
           title: Row(
             children: [
               const Text("Health Performance Pro"),
-              const SizedBox(width: 45), // Espacio entre el texto y la imagen
+              const SizedBox(width: 40), // Espacio entre el texto y la imagen
               Image.asset(
                 "assets/images/hpp.jpg", // Ruta de tu imagen
                 width: 64, // Ajusta el ancho de la imagen según sea necesario
@@ -85,12 +85,27 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildDataTable(_data1),
-            _buildDataTable(_data2),
-            _buildDataTable(_data3),
-          ],
+        // Fondo de pantalla con gradiente
+        backgroundColor:
+            Colors.transparent, // Hacer transparente el fondo del Scaffold
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 29, 70, 141),
+                Color.fromARGB(255, 29, 70, 91),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: TabBarView(
+            children: [
+              _buildDataTable(_data1),
+              _buildDataTable(_data2),
+              _buildDataTable(_data3),
+            ],
+          ),
         ),
       ),
     );
@@ -102,7 +117,9 @@ class _HomePageState extends State<HomePage> {
       itemBuilder: (_, int index) {
         return Card(
           margin: const EdgeInsets.all(3),
-          color: index == 0 ? Colors.amber : Colors.white,
+          color: index == 0
+              ? Color.fromARGB(255, 236, 33, 81)
+              : Color.fromARGB(255, 189, 208, 223),
           child: ListTile(
             leading: Text((data[index][0].toString())),
             title: Text(data[index][1].toString()),
