@@ -28,6 +28,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<List<dynamic>> _data = [];
 
+  get index => int.tryParse(index);
+
   void _loadCSV() async {
     final _rawData = await rootBundle.loadString("assets/data/heart_rate.csv");
     List<List<dynamic>> _listData =
@@ -41,17 +43,17 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("dbestech"),
+        title: const Text("Proyecto"),
       ),
       body: ListView.builder(
         itemCount: _data.length,
-        itemBuilder: (_, index) {
+        itemBuilder: (_, int index) {
           return Card(
             margin: const EdgeInsets.all(3),
             color: index == 0 ? Colors.amber : Colors.white,
             child: ListTile(
-              leading: Text(_data[index][0].toString()),
-              title: Text(_data[index][1]),
+              leading: Text((_data[index][0].toString())),
+              // title: Text(_data[index][1]),
               trailing: Text(_data[index][2].toString()),
             ),
           );
