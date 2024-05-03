@@ -1,76 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:csv/csv.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 
 void main() {
-  runApp(MatrixApp());
+  runApp(const MyApp());
 }
 
-class MatrixApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CSV Chart Example',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('CSV Chart Example'),
-        ),
-        body: ChartWidget(),
-      ),
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: HomePage(),
     );
   }
 }
 
-class ChartWidget extends StatefulWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
-  _ChartWidgetState createState() => _ChartWidgetState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _ChartWidgetState extends State<ChartWidget> {
-  List<List<dynamic>> data = [];
+class _HomePageState extends State<HomePage> {
+  List<List<dynamic>> _data = [];
 
-  @override
-  void initState() {
-    super.initState();
-    loadCSV();
-  }
-
-  Future<void> loadCSV() async {
-    final String csvData = await rootBundle.loadString('assets/data.csv');
+  void _loadCSV() async {
+    final _rawData = await rootBundle.loadString("assets/data/heart_rate.csv");
+    List<List<dynamic>> _listData =
+        const CsvToListConverter().convert(_rawData);
     setState(() {
-      data = CsvToListConverter().convert(csvData);
+      _data = _listData;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: data.isEmpty ? CircularProgressIndicator() : buildChart(),
-    );
-  }
-
-  Widget buildChart() {
-    // Extracting data for X and Y axes
-    List<charts.Series<dynamic, num>> series = [
-      charts.Series(
-        id: 'Data',
-        data: data.map((row) {
-          // Assuming the first column is X and the second is Y
-          return charts.SeriesDatum(row[0], row[1]);
-        }).toList(),
-        domainFn: (datum, _) => datum.x,
-        measureFn: (datum, _) => datum.y,
-      )
-    ];
-
-    return Container(
-      width: 300,
-      height: 300,
-      child: charts.ScatterPlotChart(
-        series,
-        animate: true,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("dbestech"),
       ),
+      body: ListView.builder(
+        itemCount: _data.length,
+        itemBuilder: (_, index) {
+          return Card(
+            margin: const EdgeInsets.all(3),
+            color: index == 0 ? Colors.amber : Colors.white,
+            child: ListTile(
+              leading: Text(_data[index][0].toString()),
+              title: Text(_data[index][1]),
+              trailing: Text(_data[index][2].toString()),
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.add), onPressed: _loadCSV),
+      // Display the contents from the CSV file
     );
   }
 }
