@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:csv/csv.dart';
+// ignore: depend_on_referenced_packages
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -30,23 +31,17 @@ class WelcomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              children: [
-                Image.asset(
-                  'assets/images/hpp.jpg', // Ruta de tu imagen
-                  width:
-                      200, // Ajusta el ancho de la imagen según sea necesario
-                  height:
-                      200, // Ajusta la altura de la imagen según sea necesario
-                ),
-              ],
+            Image.asset(
+              'assets/images/hpp.jpg',
+              width: 200,
+              height: 200,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
                 );
               },
               child: const Text('Empezar'),
@@ -64,10 +59,8 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Padding(
+      appBar: AppBar(title: const Text('Login')),
+      body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: LoginForm(),
       ),
@@ -95,38 +88,67 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           TextFormField(
             controller: _usernameController,
-            decoration: InputDecoration(labelText: 'Username'),
-            validator: (value) {
-              if (value!.isEmpty) {
-                return 'Please enter your username';
-              }
-              return null;
-            },
+            decoration: const InputDecoration(labelText: 'Username'),
+            validator: (value) =>
+                value!.isEmpty ? 'Please enter your username' : null,
           ),
           TextFormField(
             controller: _passwordController,
-            decoration: InputDecoration(labelText: 'Password'),
             obscureText: true,
-            validator: (value) {
-              if (value!.isEmpty) {
-                return 'Please enter your password';
-              }
-              return null;
-            },
+            decoration: const InputDecoration(labelText: 'Password'),
+            validator: (value) =>
+                value!.isEmpty ? 'Please enter your password' : null,
           ),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
           ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
-              );
+              if (_formKey.currentState!.validate()) {
+                loginAndGetData();
+              }
             },
-            child: Text('Login'),
+            child: const Text('Login'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> loginAndGetData() async {
+    const baseUrl =
+        'https://api.ibicare.mx'; // Replace with your actual server URL or IP
+    const loginUrl = '$baseUrl/api/login';
+    const dataUrl =
+        'https://api.ibicare.mx/api/clockData/myData?yearI=2024&monthI=04&dayI=1&yearF=2024&monthF=04&dayF=30';
+
+    try {
+      final loginResponse = await http.post(Uri.parse(loginUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'paola.aranda': _usernameController.text,
+            '66A171B7A7F': _passwordController.text
+          }));
+
+      if (loginResponse.statusCode == 200) {
+        final token = jsonDecode(loginResponse.body)['token'];
+        final dataResponse = await http.get(Uri.parse(dataUrl),
+            headers: {'Authorization': 'Bearer $token'});
+
+        if (dataResponse.statusCode == 200) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    HomePage(data: jsonDecode(dataResponse.body))),
+          );
+        } else {
+          throw Exception('Failed to load data');
+        }
+      } else {
+        throw Exception('Failed to login');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   @override
@@ -137,115 +159,25 @@ class _LoginFormState extends State<LoginForm> {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomePage extends StatelessWidget {
+  final List<dynamic> data;
 
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  List<List<dynamic>> _data1 = [];
-  List<List<dynamic>> _data2 = [];
-  List<List<dynamic>> _data3 = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCSV("assets/data/heart_rate.csv", 1);
-    _loadCSV("assets/data/calorias.csv", 2);
-    _loadCSV("assets/data/estres.csv", 3);
-  }
-
-  void _loadCSV(String path, int dataSet) async {
-    final rawData = await rootBundle.loadString(path);
-    List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
-    setState(() {
-      if (dataSet == 1) {
-        _data1 = listData;
-      } else if (dataSet == 2) {
-        _data2 = listData;
-      } else if (dataSet == 3) {
-        _data3 = listData;
-      }
-    });
-  }
+  const HomePage({Key? key, required this.data}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3, // Número total de pestañas
-      child: Scaffold(
-        appBar: AppBar(
-          title: Row(
-            children: [
-              const Text("Health Performance Pro"),
-              const SizedBox(width: 20), // Espacio entre el texto y la imagen
-              Image.asset(
-                "assets/images/hpp.jpg", // Ruta de tu imagen
-                width: 60, // Ajusta el ancho de la imagen según sea necesario
-                height: 60, // Ajusta la altura de la imagen según sea necesario
-              ),
-            ],
-          ),
-          /*  /*  actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
-                // Aquí puedes agregar la lógica para la acción del botón
-              },
-            ), */
-          ], */
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Heart Rate'),
-              Tab(text: 'Calorías'),
-              Tab(text: 'Estrés'),
-            ],
-          ),
-        ),
-        // Fondo de pantalla con gradiente
-        backgroundColor:
-            Colors.transparent, // Hacer transparente el fondo del Scaffold
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 29, 70, 141),
-                Color.fromARGB(255, 29, 70, 91),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: TabBarView(
-            children: [
-              _buildDataTable(_data1),
-              _buildDataTable(_data2),
-              _buildDataTable(_data3),
-            ],
-          ),
-        ),
+    return Scaffold(
+      appBar: AppBar(title: const Text("Data Loaded")),
+      body: ListView.builder(
+        itemCount: data.length,
+        itemBuilder: (_, index) {
+          return ListTile(
+            title: Text(data[index]['calories'].toString()),
+            subtitle: Text(
+                'HRV: ${data[index]['hrvValueAvg']} - Stress: ${data[index]['stressAvg']}'),
+          );
+        },
       ),
-    );
-  }
-
-  Widget _buildDataTable(List<List<dynamic>> data) {
-    return ListView.builder(
-      itemCount: data.length,
-      itemBuilder: (_, int index) {
-        return Card(
-          margin: const EdgeInsets.all(3),
-          color: index == 0
-              ? const Color.fromARGB(255, 236, 33, 81)
-              : const Color.fromARGB(255, 189, 208, 223),
-          child: ListTile(
-            leading: Text((data[index][0].toString())),
-            title: Text(data[index][1].toString()),
-            trailing: Text(data[index][2].toString()),
-          ),
-        );
-      },
     );
   }
 }

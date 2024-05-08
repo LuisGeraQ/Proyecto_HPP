@@ -1,3 +1,4 @@
+// dataController.js
 const fetch = require('node-fetch');
 
 async function getData(req, res) {
@@ -14,8 +15,15 @@ async function getData(req, res) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    res.json(data);
+    const fullData = await response.json();
+    const extractedData = fullData.map(entry => ({
+      date: entry.date,
+      calories: entry.calories,
+      hrvValueAvg: entry.hrvValueAvg,
+      stressAvg: entry.stressAvg
+    }));
+
+    res.json(extractedData);
   } catch (error) {
     console.error('Error al obtener la información:', error);
     res.status(500).json({ error: error.message });
