@@ -315,7 +315,8 @@ class _HomePageState extends State<HomePage> {
         if (index == 0) {
           // Fila de encabezado
           return Card(
-            color: Colors.blue[800], // Color de fondo para el encabezado
+            color: Color.fromARGB(
+                255, 195, 16, 52), // Color de fondo para el encabezado
             child: const ListTile(
               leading: Text("Fecha",
                   style: TextStyle(
@@ -333,7 +334,7 @@ class _HomePageState extends State<HomePage> {
             margin: const EdgeInsets.all(3),
             color: dataIndex % 2 == 0
                 ? const Color.fromARGB(
-                    255, 236, 33, 81) // Color alterno para las filas
+                    255, 189, 208, 223) // Color alterno para las filas
                 : const Color.fromARGB(255, 189, 208, 223),
             child: ListTile(
               leading: Text(data[dataIndex][0].toString()), // Fecha
