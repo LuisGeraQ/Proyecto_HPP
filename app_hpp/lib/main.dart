@@ -160,8 +160,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchData() async {
     try {
-      String token = await obtainToken("paola.aranda",
-          "66A171B7A7F"); // Asegúrate de reemplazar con tus credenciales reales
+      String token = await obtainToken(
+          "paola.aranda", "66A171B7A7F"); // Credenciales del usuario
       List<Map<String, dynamic>> companyData = await fetchCompanyData(token);
       processCompanyData(companyData);
     } catch (e) {
@@ -200,7 +200,7 @@ class _HomePageState extends State<HomePage> {
   // Función para obtener datos específicos de la empresa utilizando un token en los encabezados
   Future<List<Map<String, dynamic>>> fetchCompanyData(String token) async {
     final url = Uri.parse(
-        'https://api.ibicare.mx/api/clockData/myData?yearI=2024&monthI=04&dayI=1&yearF=2024&monthF=04&dayF=30');
+        'https://api.ibicare.mx/api/clockData/myData?yearI=2024&monthI=04&dayI=01&yearF=2024&monthF=12&dayF=30');
 
     try {
       final response = await http.get(
