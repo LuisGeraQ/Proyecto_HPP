@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:csv/csv.dart';
+// ignore: unused_import
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -31,17 +33,23 @@ class WelcomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/hpp.jpg',
-              width: 200,
-              height: 200,
+            Stack(
+              children: [
+                Image.asset(
+                  'assets/images/hpp.jpg', // Ruta de tu imagen
+                  width:
+                      200, // Ajusta el ancho de la imagen según sea necesario
+                  height:
+                      200, // Ajusta la altura de la imagen según sea necesario
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                 );
               },
               child: const Text('Empezar'),
@@ -59,8 +67,10 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: const Padding(
+      appBar: AppBar(
+        title: Text('Login'),
+      ),
+      body: Padding(
         padding: EdgeInsets.all(16.0),
         child: LoginForm(),
       ),
@@ -88,67 +98,38 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           TextFormField(
             controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'Username'),
-            validator: (value) =>
-                value!.isEmpty ? 'Please enter your username' : null,
+            decoration: InputDecoration(labelText: 'Username'),
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your username';
+              }
+              return null;
+            },
           ),
           TextFormField(
             controller: _passwordController,
+            decoration: InputDecoration(labelText: 'Password'),
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Password'),
-            validator: (value) =>
-                value!.isEmpty ? 'Please enter your password' : null,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Please enter your password';
+              }
+              return null;
+            },
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16.0),
           ElevatedButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                loginAndGetData();
-              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()),
+              );
             },
-            child: const Text('Login'),
+            child: Text('Login'),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> loginAndGetData() async {
-    const baseUrl =
-        'https://api.ibicare.mx'; // Replace with your actual server URL or IP
-    const loginUrl = '$baseUrl/api/login';
-    const dataUrl =
-        'https://api.ibicare.mx/api/clockData/myData?yearI=2024&monthI=04&dayI=1&yearF=2024&monthF=04&dayF=30';
-
-    try {
-      final loginResponse = await http.post(Uri.parse(loginUrl),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'paola.aranda': _usernameController.text,
-            '66A171B7A7F': _passwordController.text
-          }));
-
-      if (loginResponse.statusCode == 200) {
-        final token = jsonDecode(loginResponse.body)['token'];
-        final dataResponse = await http.get(Uri.parse(dataUrl),
-            headers: {'Authorization': 'Bearer $token'});
-
-        if (dataResponse.statusCode == 200) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    HomePage(data: jsonDecode(dataResponse.body))),
-          );
-        } else {
-          throw Exception('Failed to load data');
-        }
-      } else {
-        throw Exception('Failed to login');
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
   }
 
   @override
@@ -159,25 +140,212 @@ class _LoginFormState extends State<LoginForm> {
   }
 }
 
-class HomePage extends StatelessWidget {
-  final List<dynamic> data;
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
-  const HomePage({Key? key, required this.data}) : super(key: key);
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<List<dynamic>> data1 = [];
+  List<List<dynamic>> data2 = [];
+  List<List<dynamic>> data3 = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    try {
+      String token = await obtainToken("paola.aranda",
+          "66A171B7A7F"); // Asegúrate de reemplazar con tus credenciales reales
+      List<Map<String, dynamic>> companyData = await fetchCompanyData(token);
+      processCompanyData(companyData);
+    } catch (e) {
+      print('Error al cargar los datos: $e');
+    }
+  }
+
+  // Simula la función obtainToken y fetchCompanyData, asegúrate de reemplazarlas con tus implementaciones reales
+  Future<String> obtainToken(String username, String password) async {
+    final response = await http.post(
+      Uri.parse(
+          'https://api.ibicare.mx/api/login'), // Asegúrate de que esta es la URL correcta para obtener el token
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'user_name': username,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Asegúrate del código de estado correcto según tu API
+      // Si el servidor devolvió una respuesta exitosa,
+      // extrae el token del JSON.
+      var responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      return responseData[
+          'sessiontoken']; // Asegúrate de que 'sessiontoken' es la clave correcta para el token en la respuesta JSON.
+    } else {
+      // Si el servidor no devolvió una respuesta exitosa,
+      // entonces lanza una excepción.
+      throw Exception('Failed to obtain token.');
+    }
+  }
+
+  // Función para obtener datos específicos de la empresa utilizando un token en los encabezados
+  Future<List<Map<String, dynamic>>> fetchCompanyData(String token) async {
+    final url = Uri.parse(
+        'https://api.ibicare.mx/api/clockData/myData?yearI=2024&monthI=04&dayI=1&yearF=2024&monthF=04&dayF=30');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'sessiontoken':
+              token, // Usar 'sessiontoken' en lugar de 'Authorization'
+        },
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> allData = jsonDecode(response.body);
+        // Procesa los datos recibidos
+        return allData
+            .map((data) => {
+                  'date': data['date'],
+                  'calories': data['calories'],
+                  'hrvValueAvg': data['hrvValueAvg'],
+                  'stressAvg': data['stressAvg']
+                })
+            .toList();
+      } else {
+        // Si el código de estado no es 200, lanza una excepción
+        throw Exception(
+            'Failed to fetch company data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Manejo de errores generales
+      throw Exception('Error fetching data: $e');
+    }
+  }
+
+  void processCompanyData(List<Map<String, dynamic>> companyData) {
+    List<List<dynamic>> dateCalories = [];
+    List<List<dynamic>> dateHRV = [];
+    List<List<dynamic>> dateStress = [];
+
+    for (var data in companyData) {
+      dateCalories.add([data['date'], data['calories']]);
+      dateHRV.add([data['date'], data['hrvValueAvg']]);
+      dateStress.add([data['date'], data['stressAvg']]);
+    }
+
+    setState(() {
+      data1 = dateCalories;
+      data2 = dateHRV;
+      data3 = dateStress;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Data Loaded")),
-      body: ListView.builder(
-        itemCount: data.length,
-        itemBuilder: (_, index) {
-          return ListTile(
-            title: Text(data[index]['calories'].toString()),
-            subtitle: Text(
-                'HRV: ${data[index]['hrvValueAvg']} - Stress: ${data[index]['stressAvg']}'),
-          );
-        },
+    return DefaultTabController(
+      length: 3, // Número total de pestañas
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              const Text("Health Performance Pro"),
+              const SizedBox(width: 20), // Espacio entre el texto y la imagen
+              Image.asset(
+                "assets/images/hpp.jpg", // Ruta de tu imagen
+                width: 60, // Ajusta el ancho de la imagen según sea necesario
+                height: 60, // Ajusta la altura de la imagen según sea necesario
+              ),
+            ],
+          ),
+          /*  /*  actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                // Aquí puedes agregar la lógica para la acción del botón
+              },
+            ), */
+          ], */
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Calorías'),
+              Tab(text: 'HRV'),
+              Tab(text: 'Estrés'),
+            ],
+          ),
+        ),
+        // Fondo de pantalla con gradiente
+        backgroundColor:
+            Colors.transparent, // Hacer transparente el fondo del Scaffold
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 29, 70, 141),
+                Color.fromARGB(255, 29, 70, 91),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: TabBarView(
+            children: [
+              _buildDataTable(data1),
+              _buildDataTable(data2),
+              _buildDataTable(data3),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildDataTable(List<List<dynamic>> data) {
+    return ListView.builder(
+      itemCount: data.length +
+          1, // Aumenta el conteo para incluir la fila de encabezado
+      itemBuilder: (_, int index) {
+        if (index == 0) {
+          // Fila de encabezado
+          return Card(
+            color: Colors.blue[800], // Color de fondo para el encabezado
+            child: ListTile(
+              leading: Text("Fecha",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white)),
+              title: Text("Valor",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          );
+        } else {
+          // Fila de datos
+          int dataIndex =
+              index - 1; // Ajusta el índice para acceder a los datos
+          return Card(
+            margin: const EdgeInsets.all(3),
+            color: dataIndex % 2 == 0
+                ? const Color.fromARGB(
+                    255, 236, 33, 81) // Color alterno para las filas
+                : const Color.fromARGB(255, 189, 208, 223),
+            child: ListTile(
+              leading: Text(data[dataIndex][0].toString()), // Fecha
+              title: Text(data[dataIndex][1].toString()), // Valor numérico
+            ),
+          );
+        }
+      },
     );
   }
 }
