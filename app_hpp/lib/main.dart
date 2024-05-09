@@ -299,12 +299,62 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildDataTable(data1),
               _buildDataTable(data2),
-              _buildDataTable(data3),
+              _buildDataTable2(data3),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildDataTable2(List<List<dynamic>> data) {
+    return ListView.builder(
+      itemCount: data.length +
+          1, // Aumenta el conteo para incluir la fila de encabezado
+      itemBuilder: (_, int index) {
+        if (index == 0) {
+          // Fila de encabezado
+          return Card(
+            color: Color.fromARGB(
+                255, 195, 16, 52), // Color de fondo para el encabezado
+            child: const ListTile(
+              leading: Text("Fecha",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white)),
+              title: Text("Valor",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          );
+        } else {
+          // Fila de datos
+          int dataIndex =
+              index - 1; // Ajusta el índice para acceder a los datos
+          double value = double.parse(data[dataIndex][1].toString());
+          Color rowColor = _getRowColorBasedOnValue(value);
+
+          return Card(
+            margin: const EdgeInsets.all(3),
+            color: rowColor,
+            child: ListTile(
+              leading: Text(data[dataIndex][0].toString()), // Fecha
+              title: Text(data[dataIndex][1].toString()), // Valor numérico
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Color _getRowColorBasedOnValue(double value) {
+    if (value <= 25) {
+      return Colors.green[400] ?? Colors.green; // Verde para valores bajos
+    } else if (value <= 50) {
+      return Colors.yellow[600] ??
+          Colors.yellow; // Amarillo para valores medios
+    } else {
+      return Colors.red[400] ?? Colors.red; // Rojo para valores altos
+    }
   }
 
   Widget _buildDataTable(List<List<dynamic>> data) {
