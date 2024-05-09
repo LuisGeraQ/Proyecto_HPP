@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:csv/csv.dart';
-// ignore: unused_import
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -49,7 +46,7 @@ class WelcomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
                 );
               },
               child: const Text('Empezar'),
@@ -207,8 +204,7 @@ class _HomePageState extends State<HomePage> {
         url,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'sessiontoken':
-              token, // Usar 'sessiontoken' en lugar de 'Authorization'
+          'sessiontoken': token,
         },
       );
 
@@ -320,7 +316,7 @@ class _HomePageState extends State<HomePage> {
           // Fila de encabezado
           return Card(
             color: Colors.blue[800], // Color de fondo para el encabezado
-            child: ListTile(
+            child: const ListTile(
               leading: Text("Fecha",
                   style: TextStyle(
                       fontWeight: FontWeight.bold, color: Colors.white)),
